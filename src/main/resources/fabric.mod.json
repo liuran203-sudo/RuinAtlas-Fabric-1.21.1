@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "ruinatlas",
+	"version": "${version}",
+	"name": "Ruin Atlas",
+	"description": "墟舆录：苍垠古墟界域、遗迹结构与灵息契法。",
+	"authors": [
+		"liuran"
+	],
+	"license": "All Rights Reserved",
+	"icon": "assets/ruinatlas/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.liuran.ruinatlas.RuinAtlas"
+		],
+		"client": [
+			"com.liuran.ruinatlas.RuinAtlasClient"
+		],
+		"fabric-datagen": [
+			"com.liuran.ruinatlas.datagen.RaDatagen"
+		]
+	},
+	"mixins": [
+		"ruinatlas.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
