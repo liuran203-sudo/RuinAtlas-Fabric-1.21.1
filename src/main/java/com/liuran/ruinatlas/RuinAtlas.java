@@ -2,6 +2,7 @@ package com.liuran.ruinatlas;
 
 import com.liuran.ruinatlas.event.RaSpiritEvents;
 import com.liuran.ruinatlas.init.RaAttachments;
+import com.liuran.ruinatlas.init.RaBlockEntities;
 import com.liuran.ruinatlas.init.RaBlocks;
 import com.liuran.ruinatlas.init.RaCreativeModeTabs;
 import com.liuran.ruinatlas.init.RaItems;
@@ -31,6 +32,7 @@ public class RuinAtlas implements ModInitializer {
 
 		// 墟舆录 init 装配：每个类别一个 DeferredRegister，类内注册到注册表
 		RaBlocks.register();
+		RaBlockEntities.register();
 		RaItems.register();
 		RaParticleTypes.register();
 		RaAttachments.register();

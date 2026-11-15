@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.liuran.ruinatlas.block.RotatableRuinBlock;
 import com.liuran.ruinatlas.init.RaBlocks;
 
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
@@ -16,6 +17,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
+import net.minecraft.world.level.block.SlabBlock;
 
 import static com.liuran.ruinatlas.RuinAtlas.MODID;
 
@@ -50,7 +52,6 @@ public class RaBlockModel implements DataProvider {
 			"broken_xun_wall",
 			"cangyin_gate_stele",
 			"cangyin_offering_table",
-			"carved_step",
 			"city_curb",
 			"collapsed_kiosk",
 			"door_frame_ruin",
@@ -74,7 +75,6 @@ public class RaBlockModel implements DataProvider {
 			"sealed_ceramic_urn",
 			"spirit_platform",
 			"spirit_test_altar",
-			"step_stone",
 			"stone_incense_table",
 			"stone_lantern",
 			"stone_plinth",
@@ -96,15 +96,6 @@ public class RaBlockModel implements DataProvider {
 			"xun_wild_grass"
 	);
 
-	/** 有朝向的陈设：案、桌、屏风、铜牌，blockstate 出四向变体 */
-	private static final Set<String> FACING_BLOCKS = Set.of(
-			"bone_sacrifice_table",
-			"cangyin_offering_table",
-			"rusted_bronze_panel",
-			"stone_incense_table",
-			"wooden_screen"
-	);
-
 	private final FabricDataOutput output;
 
 	public RaBlockModel(FabricDataOutput output) {
@@ -124,7 +115,20 @@ public class RaBlockModel implements DataProvider {
 				continue;
 			}
 
-			if (FACING_BLOCKS.contains(path)) {
+			// 台阶：继承原版台阶（SlabBlock），走原版 type=bottom/top/double 变体，
+			// 下半与上半各一张 slab 模型，双台阶用整块模型
+			if (block instanceof SlabBlock) {
+				futures.add(save(cache, slabBlockState(path), "blockstates/" + path + ".json"));
+				futures.add(save(cache, slabModel("minecraft:block/slab", path), "models/block/" + path + "_slab.json"));
+				futures.add(save(cache, slabModel("minecraft:block/slab_top", path), "models/block/" + path + "_slab_top.json"));
+				futures.add(save(cache, cubeAllModel(path), "models/block/" + path + ".json"));
+				futures.add(save(cache, itemModel(MODID + ":block/" + path + "_slab"), "models/item/" + path + ".json"));
+				continue;
+			}
+
+			// 有朝向的构件（案、桌、屏风、铜牌、栏杆、花窗、檐板、门框、墙龛、碑刻）
+			// 一律出四向变体，是否转向由方块类自己决定，不再维护名字白名单
+			if (block instanceof RotatableRuinBlock) {
 				futures.add(save(cache, facingBlockState(path), "blockstates/" + path + ".json"));
 				futures.add(save(cache, blockItemModel(path), "models/item/" + path + ".json"));
 				continue;
@@ -218,8 +222,35 @@ public class RaBlockModel implements DataProvider {
 	}
 
 	private static JsonObject blockItemModel(String path) {
+		return itemModel(MODID + ":block/" + path);
+	}
+
+	private static JsonObject itemModel(String parent) {
 		JsonObject model = new JsonObject();
-		model.addProperty("parent", MODID + ":block/" + path);
+		model.addProperty("parent", parent);
+		return model;
+	}
+
+	/** 台阶三变体：下半、上半、双台阶（整块模型） */
+	private static JsonObject slabBlockState(String path) {
+		String model = MODID + ":block/" + path;
+		JsonObject variants = new JsonObject();
+		variants.add("type=bottom", noRotation(model + "_slab"));
+		variants.add("type=top", noRotation(model + "_slab_top"));
+		variants.add("type=double", noRotation(model));
+		return blockState(variants);
+	}
+
+	/** 台阶半砖模型：上下与侧面都用整块那张贴图 */
+	private static JsonObject slabModel(String parent, String path) {
+		String texture = MODID + ":block/" + path;
+		JsonObject model = new JsonObject();
+		model.addProperty("parent", parent);
+		JsonObject textures = new JsonObject();
+		textures.addProperty("bottom", texture);
+		textures.addProperty("top", texture);
+		textures.addProperty("side", texture);
+		model.add("textures", textures);
 		return model;
 	}
 
